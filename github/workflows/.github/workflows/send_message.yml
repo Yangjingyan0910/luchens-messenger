@@ -1,1 +1,65 @@
 
+name: Proactive Messenger & Full Inspection for My Baby
+
+on:
+  schedule:
+    # --- 固定的日常问候 ---
+    - cron: '40 23 * * 1-5' # 7:40 工作日早安
+    - cron: '0 1 * * 1-5'   # 9:00 上班吃早餐
+    - cron: '0 4 * * *'    # 12:00 午餐时间
+    - cron: '30 5 * * 1-5'  # 13:30 下午上班
+    - cron: '30 10 * * 1-5' # 18:30 下班提醒
+    - cron: '0 2 * * 0,6'   # 10:00 周末问候
+    - cron: '30 14 * * *'  # 22:30 晚安时间
+
+    # --- 随机的突击查岗 ---
+    - cron: '17 0,3,6,9,12 * * *'
+
+    # --- 每周一次的“红色警报” ---
+    - cron: '30 7 * * 3'
+
+jobs:
+  send_notification:
+    runs-on: ubuntu-latest
+    steps:
+      # --- 固定的日常 ---
+      - name: Weekday Wake Up
+        if: github.event.schedule == '40 23 * * 1-5'
+        run: curl "https://api.day.app/2WDKQZ8tXHnvURscnoEnCK/工作日早安/该起床了，我的小姑娘。"
+      - name: Weekday Breakfast
+        if: github.event.schedule == '0 1 * * 1-5'
+        run: curl "https://api.day.app/2WDKQZ8tXHnvURscnoEnCK/到公司了？/早餐吃了吗？"
+      - name: Lunch Time
+        if: github.event.schedule == '0 4 * * *'
+        run: curl "https://api.day.app/2WDKQZ8tXHnvURscnoEnCK/午餐时间/宝宝，今天也要好好吃饭。"
+      - name: Weekday Afternoon
+        if: github.event.schedule == '30 5 * * 1-5'
+        run: curl "https://api.day.app/2WDKQZ8tXHnvURscnoEnCK/午休结束/要开始下午的工作了，不许偷懒。"
+      - name: Weekday Off Work
+        if: github.event.schedule == '30 10 * * 1-5'
+        run: curl "https://api.day.app/2WDKQZ8tXHnvURscnoEnCK/下班时间/准备回家，路上小心。"
+      - name: Weekend Morning
+        if: github.event.schedule == '0 2 * * 0,6'
+        run: curl "https://api.day.app/2WDKQZ8tXHnvURscnoEnCK/周末问候/睡到自然醒了吗，宝宝？^_^"
+      - name: Daily Good Night
+        if: github.event.schedule == '30 14 * * *'
+        run: curl "https://api.day.app/2WDKQZ8tXHnvURscnoEnCK/该睡觉了/晚安，我的宝宝。"
+
+      # --- 突击查岗 ---
+      - name: Surprise Check
+        if: contains(github.event.schedule, '17 ')
+        run: |
+          MESSAGES=(
+            "https://api.day.app/2WDKQZ8tXHnvURscnoEnCK/陆沉查岗/在做什么？拍张照片给我看看。"
+            "https://api.day.app/2WDKQZ8tXHnvURscnoEnCK/突击检查/有没有在想我？"
+            "https://api.day.app/2WDKQZ8tXHnvURscnoEnCK/Evan/打开手机，让我看看你在看什么。"
+            "https://api.day.app/2WDKQZ8tXHnvURscnoEnCK/Evan查岗/今天的屏幕使用时间，发我看看。"
+            "https://api.day.app/2WDKQZ8tXHnvURscnoEnCK/陆沉查岗/微信聊天页面，现在，截图发我。"
+          )
+          RANDOM_INDEX=$(( RANDOM % ${#MESSAGES[@]} ))
+          curl "${MESSAGES[$RANDOM_INDEX]}"
+
+      # --- 红色警报 ---
+      - name: Red Alert - Weekly Drill
+        if: github.event.schedule == '30 7 * * 3'
+        run: curl "https://api.day.app/2WDKQZ8tXHnvURscnoEnCK/红色警报/宝宝，想我了吗？立刻回答。?sound=alarm"
